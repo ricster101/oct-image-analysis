@@ -10,7 +10,9 @@ files = dir([current_dir '\imgMouse\*.tif']); % getting images
 
 last = size(files,1);
 
-nGauss = 2; % setting number of gaussians
+nGauss = 3; % setting number of gaussians
+waveletLevel = 3; % setting the level of decomposition
+nBins = 100; % setting the number of bins
 
 paramsArray = [];
 errors = [];
@@ -41,9 +43,13 @@ for i = 1:last
     end
     
     % getting gaussian features
-    [params1, error, edgeImg1, countImg1] = gaussParam(nGauss,100,ogImg, 'bior3.7',4);
+    [params1, error, edgeImg1, countImg1] = gaussParam(nGauss,nBins,ogImg, 'bior3.7',waveletLevel);
     errors = [errors error];
-    params = [params1(1, 1:3), params1(2, 1:3), i, labeler, layer];
+    params = [];
+    for k = 1:nGauss
+        params = [params, params1(k, 1:3)];
+    end
+    params = [params, i, labeler, layer];
     paramsArray = [paramsArray; params];
     
     % adding gaussians and ploting them
@@ -81,8 +87,8 @@ for i = 1:last
     
     
     %Cumulative histogram
-    [paramsCumulative, errorCumulative, cumulHist, edgeImg] = logParam(100, ogImg, 'bior3.7', 4 );
-    lineDataset = [lineDataset; params(1:6), paramsCumulative, params(1,8), params(1,9)];
+    [paramsCumulative, errorCumulative, cumulHist, edgeImg] = logParam(nBins, ogImg, 'bior3.7', waveletLevel );
+    lineDataset = [lineDataset; params(1:nGauss*3), paramsCumulative, params(1,end-1), params(1,end)];
     
     errorsCumulative = [errorsCumulative errorCumulative];
     paramsCumulative = [paramsCumulative,i, labeler, layer];
@@ -122,5 +128,3 @@ for i = 1:last
     
 end
 %close all
-
-test = paramsArray;
